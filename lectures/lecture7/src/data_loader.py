@@ -2,7 +2,7 @@ from torchvision import datasets, transforms
 from torch.utils.data import random_split, DataLoader
 import pytorch_lightning as pl
 
-class TorchvisionDataLoader(pl.LightningDataModule):
+class TorchvisionDataLoader():
     """
     Data loader using lightning module
     """
@@ -22,6 +22,7 @@ class TorchvisionDataLoader(pl.LightningDataModule):
         # download dataset
         self.DataLoader(self.data_dir, download = True, train = True)
         self.DataLoader(self.data_dir, download = True, train = False)
+        return self
     
     def setup(self, stage=None):
         if stage == 'fit' or stage is None:
