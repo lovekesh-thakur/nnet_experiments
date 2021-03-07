@@ -2,6 +2,7 @@ import torch
 from torch import optim
 import torch.nn as nn
 from data_loader import TorchvisionDataLoader
+from torch.utils.tensorboard import SummaryWriter
 from model import MLP
 from tqdm import tqdm
 import numpy as np
@@ -23,12 +24,22 @@ parser.add_argument('--data_dir', type=str, default = './../data/', help="folder
 parser.add_argument('--epochs', default=20, type=int, help="number of epochs to train")
 parser.add_argument('--optimizer', default='Adam', type=str, help="optimizer")
 parser.add_argument('--learning_rate', default=0.001, type=float, help="learning rate")
+parser.add_argument('--device', default='cpu', type=str, help="device to train on")
+
+
+
 
 args = parser.parse_args()
 
+device = getattr(args, "device")
+
+exp_name = f"Exp_optim_{args.optimizer}_lr_{args.learning_rate}"
+writer = SummaryWriter(f'runs/{exp_name}')
+
+
 ### Create Model here
 Model = MLP(args)
-net = Model().cuda()
+net = Model().to(device)
 
 ### create or instantiate data loader
 _data = TorchvisionDataLoader(args)
@@ -49,7 +60,7 @@ for i in range(getattr(args, "epochs")):
         
         
         
-        x, y = x.cuda(), y.cuda()
+        x, y = x.to(device), y.to(device)
         x = x.view(x.shape[0], -1)
         out = net(x)
         loss = loss_fn(out, y)
@@ -62,16 +73,18 @@ for i in range(getattr(args, "epochs")):
         optimizer.step()
 
         train_loss.append(loss.cpu().data)
+    writer.add_scalar('training loss', np.mean(train_loss), i)
 
     for x, y in tqdm(_data.val_dataloader()):
         
         val_loss = []        
         with torch.no_grad():
-            x, y = x.cuda(), y.cuda()
+            x, y = x.to(device), y.to(device)
             x = x.view(x.shape[0], -1)
             out = net(x)
             loss = loss_fn(out, y)
             val_loss.append(loss.cpu().data)
+    writer.add_scalar('validation loss', np.mean(val_loss), i)
     print(f'At epoch {i} val loss is {np.mean(val_loss)} train loss is {np.mean(train_loss)}')
     
 
