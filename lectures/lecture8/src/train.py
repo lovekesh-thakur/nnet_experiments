@@ -8,10 +8,11 @@ from tqdm import tqdm
 import numpy as np
 
 import argparse
+import matplotlib.pyplot as plt
 
 parser = argparse.ArgumentParser()
 ## arguments for Model 
-parser.add_argument('--hidden_units', type=list, default = 64, help="number of units in hidden layers")
+parser.add_argument('--hidden_units', type=int, default = 64, help="number of units in hidden layers")
 parser.add_argument('--input_units', type=int, default = 1, help="Number of units in input layer")
 parser.add_argument('--output_units', type=int, default = 2, help="Number of units in output classes")
 parser.add_argument('--activation', type=str, default = 'ReLU', help="Activation")
@@ -33,7 +34,7 @@ args = parser.parse_args()
 
 device = getattr(args, "device")
 
-exp_name = f"Exp_optim_{args.optimizer}_lr_{args.learning_rate}"
+exp_name = f"Exp_optim_{args.optimizer}_lr_{args.learning_rate}_hu_{args.hidden_units}"
 writer = SummaryWriter(f'runs/{exp_name}')
 
 print(device)
@@ -74,16 +75,26 @@ for i in range(getattr(args, "epochs")):
         train_loss.append(loss.cpu().data)
     writer.add_scalar('training loss', np.mean(train_loss), i)
 
-    # for x, y in tqdm(_data.val_dataloader()):
+    for ip, _ in tqdm(_data.val_dataloader()):
         
-    #     val_loss = []        
-    #     with torch.no_grad():
-    #         x, y = x.to(device), y.to(device)
-    #         x = x.view(x.shape[0], -1)
-    #         out = net(x)
-    #         loss = loss_fn(out, y)
-    #         val_loss.append(loss.cpu().data)
-    # writer.add_scalar('validation loss', np.mean(val_loss), i)
+        val_loss = []        
+        with torch.no_grad():
+            x = ip[:, :-1, :]
+            x = x.to(device)
+            out = net(x)
+            pred_img = torch.zeros([16, 784])
+            pred_img[:, :-1] = torch.argmax(out, 2)
+            pred_img = pred_img.int()
+            pred_img = pred_img.reshape(16, 28, 28)
+
+            fig, axes = plt.subplots(nrows=4, ncols=4, sharex=True, sharey=True)
+            axes = axes.ravel()
+            for j in range(16):
+                axes[j].imshow(pred_img[j])
+            writer.add_figure(f'epoch_{i}', fig)
+        break
+        
+    #  writer.add_scalar('validation loss', np.mean(val_loss), i)
     print(f'At epoch {i} train loss is {np.mean(train_loss)}')
     
 
