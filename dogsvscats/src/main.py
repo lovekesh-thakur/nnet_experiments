@@ -84,7 +84,8 @@ best_val_loss = 10000
 
 ## running training and logging with wandb
 with wandb.init(project = 'dogsvscats-resnet34-classifier', 
-                config = conf, name = "baseline-resnet18-augmentation"):
+                config = conf, name = "res18-aug-more-data", 
+                notes = "More training data ( 18k train, 7k valid"):
     start_iterations = 0
     for i in tqdm(range(start_epoch, 500)):
         
