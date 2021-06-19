@@ -22,9 +22,9 @@ class DogsVsCatsDataset(Dataset):
         image = cv2.imread(image_filepath)
         image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
         if "cat" in image_filepath.split(os.sep)[-1]:
-            label = 1
+            label = 1.0
         else:
-            label = 0
+            label = 0.0
         if self.transforms is not None:
             image = self.transforms(image=image)["image"]
         return image, label

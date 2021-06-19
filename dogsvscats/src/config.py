@@ -14,5 +14,7 @@ adam_config = {
          'dataset' : 'dogsvscats',
          'learning_rate' : 0.001,
          'optimizer' : 'Adam',
-         'architecture' : 'resnet34'
+         'architecture' : 'resnet18',
+         'train_file' : "/home/lovekesh/Developer/nnet_experiments/dogsvscats/data/train.txt",
+         'valid_file' : "/home/lovekesh/Developer/nnet_experiments/dogsvscats/data/valid.txt"
          }

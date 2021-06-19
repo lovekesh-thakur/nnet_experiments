@@ -1,4 +1,5 @@
 import torch
+import torch.nn as nn
 import numpy as np
 import torchmetrics
 import wandb
@@ -45,7 +46,7 @@ def valid(model, data, loss_fn, device = "cpu"):
         for X, Y in data:
             X, Y = X.to(device), Y.to(device)
             out = model(X)
-            preds = torch.argmax(out, dim = 1)
+            preds = torch.round(torch.sigmoid(out))
             loss = loss_fn(out, Y)
             losses.append(loss.item())
             res = torch.sum(preds == Y).item()

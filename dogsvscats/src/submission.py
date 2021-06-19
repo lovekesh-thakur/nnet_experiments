@@ -34,11 +34,13 @@ for img_p in tqdm(images):
     image = valid_transform(image=image)["image"]
     image = torch.unsqueeze(image, 0).to(device)
     out = model(image)
-    proba = round(torch.softmax(out, dim = 1).cpu().data[0][0].item(), 4)
-    if proba > 0.95:
-        proba = 0.95
-    if proba < 0.05:
-        proba = 0.05
+    proba = 1 - torch.sigmoid(out).item()
+    
+    # if proba > 0.95:
+    #     proba = 0.95
+    # if proba < 0.05:
+    #     proba = 0.05
+    
     image_id = img_p.split(os.sep)[-1].split('.')[0]
     msg = ",".join([str(image_id), str(proba)])
     f.write(msg + "\n")

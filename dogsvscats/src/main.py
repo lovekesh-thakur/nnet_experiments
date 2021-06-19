@@ -19,7 +19,7 @@ device = "cuda" if torch.cuda.is_available() else "cpu"
 
 conf = adam_config
 resume_training = False
-resume_checkpoint = None
+resume_checkpoint = "./../weights/model_50.pth"
 
 
 train_transform = A.Compose(
@@ -33,6 +33,14 @@ train_transform = A.Compose(
                             ]
                             )
 
+# train_transform = A.Compose(
+#                             [
+#                             A.Resize(300, 300),
+#                             A.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225)),
+#                             ToTensorV2(),
+#                             ]
+#                             )
+
 valid_transform = A.Compose(
                             [
                             A.Resize(300, 300),
@@ -42,17 +50,17 @@ valid_transform = A.Compose(
                             )
 
 ### Dataset Loader
-train_dataset = datasets.DogsVsCatsDataset("/home/lovekesh/Developer/nnet_experiments/dogsvscats/data/train.txt", 
+train_dataset = datasets.DogsVsCatsDataset(conf['train_file'], 
                             transforms=train_transform)
-train_data = DataLoader(dataset=train_dataset, batch_size=conf['BATCH_SIZE'], num_workers=4, shuffle=True)
+train_data = DataLoader(dataset=train_dataset, batch_size=conf['BATCH_SIZE'], num_workers=8, shuffle=True)
 
-valid_dataset = datasets.DogsVsCatsDataset("/home/lovekesh/Developer/nnet_experiments/dogsvscats/data/valid.txt", 
+valid_dataset = datasets.DogsVsCatsDataset(conf['valid_file'], 
                             transforms=valid_transform)
-valid_data = DataLoader(dataset=train_dataset, batch_size=conf['BATCH_SIZE'], num_workers=4, shuffle=True)
+valid_data = DataLoader(dataset=valid_dataset, batch_size=conf['BATCH_SIZE'], num_workers=8, shuffle=True)
 
 ### preparing model and loss function
-net = resnet.Resnet34().to(device=device)
-loss_fn = nn.CrossEntropyLoss()
+net = resnet.Resnet18().to(device=device)
+loss_fn = nn.BCEWithLogitsLoss()
 
 ## setting up optimizer
 if conf['optimizer'] == 'sgd':
@@ -70,12 +78,13 @@ else:
 
 
 ## setting up learning rate scheduler
-scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, patience=5, verbose=True)
+scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, patience=3, verbose=True)
 
 best_val_loss = 10000
 
 ## running training and logging with wandb
-with wandb.init(project = 'resnet34-classifier', config = conf):
+with wandb.init(project = 'dogsvscats-resnet34-classifier', 
+                config = conf, name = "baseline-resnet18-augmentation"):
     start_iterations = 0
     for i in tqdm(range(start_epoch, 500)):
         
